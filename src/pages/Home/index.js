@@ -4,6 +4,8 @@ import axiosInstance from "../../services/axios";
 
 function Home() {
   const [products, setProducts] = useState([]);
+  const [category, setCategory] = useState("");
+  const [pname, setPname] = useState("");
 
   useEffect(() => {
     fetchProducts();
@@ -25,11 +27,35 @@ function Home() {
     ));
   };
 
-  const handleChange = () => {
-    // copy paste dari komponen lain
+  // const filter = () => {};
+
+  const handleChange = (e) => {
+    setCategory(e.target.value);
   };
-  const btnSearchHandler = () => {
-    // untuk search products berdasarkan nama dan category
+  const handleChange2 = (e) => {
+    setPname(e.target.value);
+  };
+  const btnSearchHandler = async () => {
+    try {
+      const resGetProducts = await axiosInstance.get("/products");
+      setProducts(resGetProducts.data);
+      const filteringCategory = await resGetProducts.data.filter((product) => {
+        const name = product.category.toLowerCase();
+        const lowerKeyword = category.toLowerCase();
+        return name.includes(lowerKeyword);
+      });
+      setProducts(filteringCategory);
+
+      const filteringProducts = await filteringCategory.filter((product) => {
+        const name = product.productName.toLowerCase();
+        const lowerKeyword = pname.toLowerCase();
+        return name.includes(lowerKeyword);
+      });
+      setProducts(filteringProducts);
+    } catch (error) {
+      alert("Terjadi kesalahan");
+      console.log({ error });
+    }
   };
   const selectSortHandler = () => {
     // sorting products
@@ -50,7 +76,7 @@ function Home() {
                 name="keyword"
                 type="text"
                 className="form-control mb-3"
-                onChange={handleChange}
+                onChange={handleChange2}
               />
               <label>Product Category</label>
               <select
@@ -93,7 +119,9 @@ function Home() {
             </div>
           </div>
         </div>
-        <div className="col-9 d-flex flex-wrap ">{renderProducts()}</div>
+        <div className="col-9 d-flex flex-wrap ">
+          {renderProducts(products)}
+        </div>
       </div>
     </div>
   );
