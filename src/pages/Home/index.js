@@ -4,8 +4,10 @@ import axiosInstance from "../../services/axios";
 
 function Home() {
   const [products, setProducts] = useState([]);
-  const [category, setCategory] = useState("");
-  const [pname, setPname] = useState("");
+  const [value, setValue] = useState({
+    productName: "",
+    category: "",
+  });
 
   useEffect(() => {
     fetchProducts();
@@ -30,10 +32,7 @@ function Home() {
   // const filter = () => {};
 
   const handleChange = (e) => {
-    setCategory(e.target.value);
-  };
-  const handleChange2 = (e) => {
-    setPname(e.target.value);
+    setValue({ ...value, [e.target.name]: e.target.value });
   };
   const btnSearchHandler = async () => {
     try {
@@ -41,14 +40,14 @@ function Home() {
       setProducts(resGetProducts.data);
       const filteringCategory = await resGetProducts.data.filter((product) => {
         const name = product.category.toLowerCase();
-        const lowerKeyword = category.toLowerCase();
+        const lowerKeyword = value.category.toLowerCase();
         return name.includes(lowerKeyword);
       });
       setProducts(filteringCategory);
 
       const filteringProducts = await filteringCategory.filter((product) => {
         const name = product.productName.toLowerCase();
-        const lowerKeyword = pname.toLowerCase();
+        const lowerKeyword = value.productName.toLowerCase();
         return name.includes(lowerKeyword);
       });
       setProducts(filteringProducts);
@@ -119,16 +118,18 @@ function Home() {
             <div className="card-body">
               <label>Product Name</label>
               <input
-                name="keyword"
+                name="productName"
                 type="text"
                 className="form-control mb-3"
-                onChange={handleChange2}
+                onChange={handleChange}
+                value={value.productName}
               />
               <label>Product Category</label>
               <select
                 name="category"
                 className="form-control"
                 onChange={handleChange}
+                value={value.category}
               >
                 <option value="">All Items</option>
                 <option value="kaos">Kaos</option>
