@@ -57,8 +57,54 @@ function Home() {
       console.log({ error });
     }
   };
-  const selectSortHandler = () => {
-    // sorting products
+  const selectSortHandler = async (e) => {
+    try {
+      const resGetProducts = await axiosInstance.get("/products");
+      if (e.target.value === "az") {
+        const sortAsc = resGetProducts.data.sort((a, b) => {
+          const name1 = a.productName.toLowerCase();
+          const name2 = b.productName.toLowerCase();
+          if (name1 < name2) {
+            return -1;
+          }
+          if (name1 > name2) {
+            return 1;
+          }
+          return 0;
+        });
+        setProducts(sortAsc);
+      } else if (e.target.value === "za") {
+        const sortDesc = resGetProducts.data.sort((a, b) => {
+          const name1 = a.productName.toLowerCase();
+          const name2 = b.productName.toLowerCase();
+          if (name1 < name2) {
+            return 1;
+          }
+          if (name1 > name2) {
+            return -1;
+          }
+          return 0;
+        });
+        setProducts(sortDesc);
+      } else if (e.target.value === "highPrice") {
+        const sortByPriceAsc = resGetProducts.data.sort((a, b) => {
+          const numA = a.price;
+          const numB = b.price;
+          return numB - numA;
+        });
+        setProducts(sortByPriceAsc);
+      } else if (e.target.value === "lowPrice") {
+        const sortByPriceDesc = resGetProducts.data.sort((a, b) => {
+          const numA = a.price;
+          const numB = b.price;
+          return numA - numB;
+        });
+        setProducts(sortByPriceDesc);
+      } else setProducts(resGetProducts.data);
+    } catch (error) {
+      alert("Terjadi kesalahan");
+      console.log({ error });
+    }
   };
 
   return (
