@@ -4,105 +4,96 @@ import axiosInstance from "../../services/axios";
 
 function Home() {
   const [products, setProducts] = useState([]);
-  const [value, setValue] = useState({
-    productName: "",
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [formState, setFormstate] = useState({
+    keyword: "",
     category: "",
   });
 
   useEffect(() => {
     fetchProducts();
   }, []);
-
   const fetchProducts = async () => {
     try {
       const resGetProducts = await axiosInstance.get("/products");
       setProducts(resGetProducts.data);
+      setFilteredProducts(resGetProducts.data);
     } catch (error) {
-      alert("Terjadi kesalahan");
+      alert("Terjadi kesalahan. Api udah dinyalain ?");
       console.log({ error });
     }
   };
 
   const renderProducts = () => {
-    return products.map((product) => (
+    return filteredProducts.map((product) => (
       <ProductCard key={product.id} product={product} />
     ));
   };
 
-  // const filter = () => {};
-
-  const handleChange = (e) => {
-    setValue({ ...value, [e.target.name]: e.target.value });
+  const handleChange = (event) => {
+    setFormstate({ ...formState, [event.target.name]: event.target.value });
   };
-  const btnSearchHandler = async () => {
-    try {
-      const resGetProducts = await axiosInstance.get("/products");
-      setProducts(resGetProducts.data);
-      const filteringCategory = await resGetProducts.data.filter((product) => {
-        const name = product.category.toLowerCase();
-        const lowerKeyword = value.category.toLowerCase();
-        return name.includes(lowerKeyword);
-      });
-      setProducts(filteringCategory);
 
-      const filteringProducts = await filteringCategory.filter((product) => {
-        const name = product.productName.toLowerCase();
-        const lowerKeyword = value.productName.toLowerCase();
-        return name.includes(lowerKeyword);
-      });
-      setProducts(filteringProducts);
-    } catch (error) {
-      alert("Terjadi kesalahan");
-      console.log({ error });
-    }
+  const onFilterHandler = () => {
+    // untuk search products berdasarkan nama dan category
+    const filteredProducts = products.filter((product) => {
+      const productName = product.productName.toLowerCase();
+      const keywordName = formState.keyword.toLowerCase();
+      return (
+        productName.includes(keywordName) &&
+        product.category.includes(formState.category)
+      );
+    });
+
+    setFilteredProducts(filteredProducts);
   };
-  const selectSortHandler = async (e) => {
-    try {
-      const resGetProducts = await axiosInstance.get("/products");
-      if (e.target.value === "az") {
-        const sortAsc = resGetProducts.data.sort((a, b) => {
-          const name1 = a.productName.toLowerCase();
-          const name2 = b.productName.toLowerCase();
-          if (name1 < name2) {
+
+  const btnSearchHandler = () => {
+    onFilterHandler();
+  };
+
+  const selectSortHandler = (event) => {
+    // sorting products
+
+    const sortBy = event.target.value;
+    const tmpProducts = [...filteredProducts];
+
+    // filteredProducts : A C B F E
+    switch (sortBy) {
+      case "az":
+        tmpProducts.sort((a, b) => {
+          if (a.productName < b.productName) {
             return -1;
-          }
-          if (name1 > name2) {
+          } else if (a.productName > b.productName) {
             return 1;
+          } else {
+            return 0;
           }
-          return 0;
         });
-        setProducts(sortAsc);
-      } else if (e.target.value === "za") {
-        const sortDesc = resGetProducts.data.sort((a, b) => {
-          const name1 = a.productName.toLowerCase();
-          const name2 = b.productName.toLowerCase();
-          if (name1 < name2) {
+        setFilteredProducts(tmpProducts);
+        break;
+      case "za":
+        tmpProducts.sort((a, b) => {
+          if (a.productName < b.productName) {
             return 1;
-          }
-          if (name1 > name2) {
+          } else if (a.productName > b.productName) {
             return -1;
+          } else {
+            return 0;
           }
-          return 0;
         });
-        setProducts(sortDesc);
-      } else if (e.target.value === "highPrice") {
-        const sortByPriceAsc = resGetProducts.data.sort((a, b) => {
-          const numA = a.price;
-          const numB = b.price;
-          return numB - numA;
-        });
-        setProducts(sortByPriceAsc);
-      } else if (e.target.value === "lowPrice") {
-        const sortByPriceDesc = resGetProducts.data.sort((a, b) => {
-          const numA = a.price;
-          const numB = b.price;
-          return numA - numB;
-        });
-        setProducts(sortByPriceDesc);
-      } else setProducts(resGetProducts.data);
-    } catch (error) {
-      alert("Terjadi kesalahan");
-      console.log({ error });
+        setFilteredProducts(tmpProducts);
+        break;
+      case "lowPrice":
+        tmpProducts.sort((a, b) => a.price - b.price);
+        setFilteredProducts(tmpProducts);
+        break;
+      case "highPrice":
+        tmpProducts.sort((a, b) => b.price - a.price);
+        setFilteredProducts(tmpProducts);
+        break;
+      default:
+        onFilterHandler();
     }
   };
 
