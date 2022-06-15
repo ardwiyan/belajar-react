@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../services/axios";
 
@@ -7,6 +8,11 @@ function DetailProduct() {
   const params = useParams();
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(0);
+  const userId = useSelector((state) => state.auth.id);
+
+  useEffect(() => {
+    fetchProduct();
+  }, []);
 
   const fetchProduct = async () => {
     try {
@@ -26,9 +32,40 @@ function DetailProduct() {
     setQuantity(quantity - 1);
   };
 
-  useEffect(() => {
-    fetchProduct();
-  }, []);
+  const addToCart = async () => {
+    const { id, productImage, productName, price, description, category } =
+      product;
+
+    const cart = {
+      productName,
+      price,
+      productImage,
+      description,
+      category,
+      quantity,
+      userId,
+      productId: id,
+    };
+
+    const res = await axiosInstance.get("/cart", {
+      params: { productId: id },
+    });
+
+    const foundCart = res.data[0];
+
+    if (foundCart) {
+      // id dari foundCart dibuatkan alias yaitu foundCartId
+      const { id: foundCartId, quantity: founcCartQuantity } = foundCart;
+      const newQuantity = founcCartQuantity + quantity;
+      await axiosInstance.patch(`/cart/${foundCartId}`, {
+        quantity: newQuantity,
+      });
+      alert("Quantity berhasil di update");
+    } else {
+      await axiosInstance.post("/cart", cart);
+      alert("Berhasil di tambahkan ke cart");
+    }
+  };
 
   const { productImage, productName, price, description } = product;
   return (
@@ -54,7 +91,9 @@ function DetailProduct() {
               +
             </button>
           </div>
-          <button className="btn btn-success mt-3">Add to cart</button>
+          <button className="btn btn-success mt-3" onClick={addToCart}>
+            Add to cart
+          </button>
         </div>
       </div>
     </div>
