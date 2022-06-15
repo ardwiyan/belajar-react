@@ -113,14 +113,12 @@ function Home() {
                 type="text"
                 className="form-control mb-3"
                 onChange={handleChange}
-                value={value.productName}
               />
               <label>Product Category</label>
               <select
                 name="category"
                 className="form-control"
                 onChange={handleChange}
-                value={value.category}
               >
                 <option value="">All Items</option>
                 <option value="kaos">Kaos</option>
